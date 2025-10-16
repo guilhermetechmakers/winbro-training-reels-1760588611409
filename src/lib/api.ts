@@ -127,18 +127,83 @@ export const videoProcessingApi = {
 
 // Course API
 export const courseApi = {
+  // Basic CRUD operations
   getAll: () => api.get<import('@/types/course').Course[]>('/courses'),
   getById: (id: string) => api.get<import('@/types/course').Course>(`/courses/${id}`),
   create: (data: import('@/types/course').CreateCourseInput) => 
     api.post<import('@/types/course').Course>('/courses', data),
-  update: (id: string, data: Partial<import('@/types/course').CreateCourseInput>) => 
+  update: (id: string, data: import('@/types/course').UpdateCourseInput) => 
     api.put<import('@/types/course').Course>(`/courses/${id}`, data),
   delete: (id: string) => api.delete(`/courses/${id}`),
-  enroll: (courseId: string) => api.post(`/courses/${courseId}/enroll`, {}),
-  getProgress: (courseId: string) => 
-    api.get<import('@/types/course').CourseProgress>(`/courses/${courseId}/progress`),
-  submitQuiz: (courseId: string, quizId: string, answers: Record<string, string | number>) =>
-    api.post(`/courses/${courseId}/quizzes/${quizId}/submit`, { answers }),
+  
+  // Course publishing and assignment
+  publish: (id: string) => api.post<import('@/types/course').Course>(`/courses/${id}/publish`, {}),
+  unpublish: (id: string) => api.post<import('@/types/course').Course>(`/courses/${id}/unpublish`, {}),
+  assign: (id: string, data: { user_ids: string[]; team_ids?: string[]; customer_ids?: string[] }) => 
+    api.post(`/courses/${id}/assign`, data),
+  
+  // Course modules
+  getModules: (courseId: string) => api.get<import('@/types/course').CourseModule[]>(`/courses/${courseId}/modules`),
+  createModule: (data: import('@/types/course').CreateModuleInput) => api.post<import('@/types/course').CourseModule>('/courses/modules', data),
+  updateModule: (id: string, data: Partial<import('@/types/course').CreateModuleInput>) => 
+    api.put<import('@/types/course').CourseModule>(`/courses/modules/${id}`, data),
+  deleteModule: (id: string) => api.delete(`/courses/modules/${id}`),
+  reorderModules: (courseId: string, moduleIds: string[]) => 
+    api.put(`/courses/${courseId}/modules/reorder`, { module_ids: moduleIds }),
+  
+  // Course lessons
+  getLessons: (moduleId: string) => api.get<import('@/types/course').CourseLesson[]>(`/courses/modules/${moduleId}/lessons`),
+  createLesson: (data: import('@/types/course').CreateLessonInput) => api.post<import('@/types/course').CourseLesson>('/courses/lessons', data),
+  updateLesson: (id: string, data: Partial<import('@/types/course').CreateLessonInput>) => 
+    api.put<import('@/types/course').CourseLesson>(`/courses/lessons/${id}`, data),
+  deleteLesson: (id: string) => api.delete(`/courses/lessons/${id}`),
+  reorderLessons: (moduleId: string, lessonIds: string[]) => 
+    api.put(`/courses/modules/${moduleId}/lessons/reorder`, { lesson_ids: lessonIds }),
+  
+  // Course quizzes
+  getQuizzes: (courseId: string) => api.get<import('@/types/course').CourseQuiz[]>(`/courses/${courseId}/quizzes`),
+  createQuiz: (data: import('@/types/course').CreateQuizInput) => api.post<import('@/types/course').CourseQuiz>('/courses/quizzes', data),
+  updateQuiz: (id: string, data: Partial<import('@/types/course').CreateQuizInput>) => 
+    api.put<import('@/types/course').CourseQuiz>(`/courses/quizzes/${id}`, data),
+  deleteQuiz: (id: string) => api.delete(`/courses/quizzes/${id}`),
+  
+  // Quiz questions
+  getQuestions: (quizId: string) => api.get<import('@/types/course').QuizQuestion[]>(`/courses/quizzes/${quizId}/questions`),
+  createQuestion: (data: import('@/types/course').CreateQuestionInput) => api.post<import('@/types/course').QuizQuestion>('/courses/quiz-questions', data),
+  updateQuestion: (id: string, data: Partial<import('@/types/course').CreateQuestionInput>) => 
+    api.put<import('@/types/course').QuizQuestion>(`/courses/quiz-questions/${id}`, data),
+  deleteQuestion: (id: string) => api.delete(`/courses/quiz-questions/${id}`),
+  reorderQuestions: (quizId: string, questionIds: string[]) => 
+    api.put(`/courses/quizzes/${quizId}/questions/reorder`, { question_ids: questionIds }),
+  
+  // Course enrollment and progress
+  enroll: (courseId: string) => api.post<import('@/types/course').CourseEnrollment>(`/courses/${courseId}/enroll`, {}),
+  getEnrollments: (courseId: string) => api.get<import('@/types/course').CourseEnrollment[]>(`/courses/${courseId}/enrollments`),
+  getMyEnrollments: () => api.get<import('@/types/course').CourseEnrollment[]>('/courses/my-enrollments'),
+  getEnrollment: (enrollmentId: string) => api.get<import('@/types/course').CourseEnrollment>(`/courses/enrollments/${enrollmentId}`),
+  updateProgress: (enrollmentId: string, data: { lesson_id: string; completed: boolean }) => 
+    api.put<import('@/types/course').CourseProgress>(`/courses/enrollments/${enrollmentId}/progress`, data),
+  
+  // Course player data
+  getPlayerData: (courseId: string) => api.get<import('@/types/course').CoursePlayerData>(`/courses/${courseId}/player`),
+  getProgress: (courseId: string) => api.get<import('@/types/course').CourseProgress>(`/courses/${courseId}/progress`),
+  
+  // Quiz attempts
+  startQuizAttempt: (quizId: string) => api.post<import('@/types/course').QuizAttempt>(`/courses/quizzes/${quizId}/attempt`, {}),
+  submitQuiz: (attemptId: string, data: import('@/types/course').QuizSubmission) => 
+    api.put<import('@/types/course').QuizAttempt>(`/courses/quiz-attempts/${attemptId}/submit`, data),
+  getQuizAttempts: (quizId: string) => api.get<import('@/types/course').QuizAttempt[]>(`/courses/quizzes/${quizId}/attempts`),
+  
+  // Certificates
+  getCertificate: (enrollmentId: string) => api.get<import('@/types/course').Certificate>(`/courses/enrollments/${enrollmentId}/certificate`),
+  generateCertificate: (enrollmentId: string) => api.post<import('@/types/course').Certificate>(`/courses/enrollments/${enrollmentId}/certificate`, {}),
+  verifyCertificate: (verificationCode: string) => api.get<import('@/types/course').Certificate>(`/courses/certificates/verify/${verificationCode}`),
+  
+  // Search and filtering
+  search: (query: string) => api.get<import('@/types/course').Course[]>(`/courses/search?q=${query}`),
+  getByOrganization: (organizationId: string) => api.get<import('@/types/course').Course[]>(`/courses/organization/${organizationId}`),
+  getPublished: () => api.get<import('@/types/course').Course[]>('/courses/published'),
+  getDrafts: () => api.get<import('@/types/course').Course[]>('/courses/drafts'),
 };
 
 // User API
