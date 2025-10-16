@@ -158,9 +158,12 @@ export const authApi = {
   signUp: (credentials: import('@/types/auth').SignUpInput) => 
     api.post<import('@/types/auth').AuthResponse>('/auth/register', credentials),
   signOut: () => api.post('/auth/logout', {}),
-  resetPassword: (email: string) => api.post('/auth/forgot-password', { email }),
-  confirmPasswordReset: (data: import('@/types/auth').PasswordResetConfirm) => 
-    api.post('/auth/reset-password', data),
+  requestPasswordReset: (data: import('@/types/auth').PasswordResetRequest) => 
+    api.post<import('@/types/auth').PasswordResetResponse>('/auth/request-password-reset', data),
+  resetPassword: (data: import('@/types/auth').PasswordResetConfirm) => 
+    api.post<import('@/types/auth').PasswordResetConfirmation>('/auth/reset-password', data),
+  validateResetToken: (token: string) => 
+    api.get<import('@/types/auth').TokenValidation>(`/auth/validate-reset-token/${token}`),
   verifyEmail: (token: string) => api.post<import('@/types/auth').VerifyEmailResponse>('/auth/verify-email', { token }),
   resendVerification: (email: string) => api.post<import('@/types/auth').ResendVerificationResponse>('/auth/resend-verification', { email }),
   refreshToken: () => api.post<import('@/types/auth').AuthResponse>('/auth/refresh', {}),

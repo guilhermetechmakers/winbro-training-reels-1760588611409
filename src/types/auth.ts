@@ -28,9 +28,29 @@ export interface PasswordResetRequest {
   email: string;
 }
 
+export interface PasswordResetResponse {
+  message: string;
+  rateLimitInfo?: {
+    remaining: number;
+    resetTime: number;
+  };
+}
+
 export interface PasswordResetConfirm {
   token: string;
   new_password: string;
+  confirm_password: string;
+}
+
+export interface PasswordResetConfirmation {
+  success: boolean;
+  message: string;
+}
+
+export interface TokenValidation {
+  valid: boolean;
+  expired: boolean;
+  email?: string;
 }
 
 export interface EmailVerificationRequest {

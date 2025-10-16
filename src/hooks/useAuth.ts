@@ -106,7 +106,7 @@ export const usePasswordReset = () => {
 // Confirm password reset mutation
 export const useConfirmPasswordReset = () => {
   return useMutation({
-    mutationFn: authApi.confirmPasswordReset,
+    mutationFn: authApi.resetPassword,
     onSuccess: () => {
       toast.success('Password reset successfully! You can now sign in.');
     },

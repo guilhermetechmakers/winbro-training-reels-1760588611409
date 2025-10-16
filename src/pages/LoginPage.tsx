@@ -125,7 +125,7 @@ export default function LoginPage() {
                   </Label>
                 </div>
                 <Link
-                  to="/password-reset"
+                  to="/password-reset-request"
                   className="text-sm text-primary hover:underline"
                 >
                   Forgot password?
