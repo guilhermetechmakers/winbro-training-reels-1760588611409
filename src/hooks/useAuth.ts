@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authApi, userApi } from '@/lib/api';
+import { emailVerificationApi } from '@/api/email-verification';
 import { toast } from 'sonner';
 // import type { SignInInput, SignUpInput, PasswordResetRequest, PasswordResetConfirm } from '@/types/auth';
 
@@ -117,13 +118,43 @@ export const useConfirmPasswordReset = () => {
 
 // Email verification mutation
 export const useEmailVerification = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: authApi.verifyEmail,
-    onSuccess: () => {
-      toast.success('Email verified successfully!');
+    mutationFn: emailVerificationApi.verifyEmail,
+    onSuccess: (data) => {
+      if (data.success) {
+        // Update user verification status in cache
+        queryClient.setQueryData(authKeys.user, (oldData: any) => {
+          if (oldData) {
+            return { ...oldData, email_verified: true };
+          }
+          return oldData;
+        });
+        toast.success('Email verified successfully!');
+      } else {
+        toast.error(data.message || 'Email verification failed');
+      }
     },
     onError: (error: any) => {
       toast.error(`Email verification failed: ${error.response?.data?.message || error.message}`);
+    },
+  });
+};
+
+// Resend verification email mutation
+export const useResendVerification = () => {
+  return useMutation({
+    mutationFn: emailVerificationApi.resendVerification,
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success('Verification email sent! Check your inbox.');
+      } else {
+        toast.error(data.message || 'Failed to send verification email');
+      }
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to send verification email: ${error.response?.data?.message || error.message}`);
     },
   });
 };

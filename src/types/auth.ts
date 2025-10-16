@@ -37,6 +37,23 @@ export interface EmailVerificationRequest {
   token: string;
 }
 
+export interface VerifyEmailResponse {
+  success: boolean;
+  message: string;
+  userId?: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
+}
+
+export interface ResendVerificationResponse {
+  success: boolean;
+  message: string;
+  canResend: boolean;
+  resendCooldown?: number;
+}
+
 export interface SSOConfig {
   provider: 'google' | 'microsoft' | 'saml' | 'oidc';
   client_id: string;

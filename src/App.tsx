@@ -47,7 +47,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/password-reset" element={<PasswordResetPage />} />
-            <Route path="/email-verification" element={<EmailVerificationPage />} />
+            <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
             
             {/* Dashboard routes */}
             <Route path="/dashboard" element={<DashboardLayout />}>

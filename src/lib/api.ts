@@ -161,6 +161,7 @@ export const authApi = {
   resetPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   confirmPasswordReset: (data: import('@/types/auth').PasswordResetConfirm) => 
     api.post('/auth/reset-password', data),
-  verifyEmail: (token: string) => api.post('/auth/verify-email', { token }),
+  verifyEmail: (token: string) => api.post<import('@/types/auth').VerifyEmailResponse>('/auth/verify-email', { token }),
+  resendVerification: (email: string) => api.post<import('@/types/auth').ResendVerificationResponse>('/auth/resend-verification', { email }),
   refreshToken: () => api.post<import('@/types/auth').AuthResponse>('/auth/refresh', {}),
 };
