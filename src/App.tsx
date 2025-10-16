@@ -14,6 +14,7 @@ import EmailVerificationPage from "@/pages/EmailVerificationPage";
 import DashboardLayout from "@/pages/DashboardLayout";
 import DashboardPage from "@/pages/DashboardPage";
 import ContentLibraryPage from "@/pages/ContentLibraryPage";
+import SearchPage from "@/pages/SearchPage";
 import VideoPlayerPage from "@/pages/VideoPlayerPage";
 import UploadClipPage from "@/pages/UploadClipPage";
 import CourseBuilderPage from "@/pages/CourseBuilderPage";
@@ -59,6 +60,7 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="library" element={<ContentLibraryPage />} />
+                <Route path="search" element={<SearchPage />} />
                 <Route path="video/:id" element={<VideoPlayerPage />} />
                 <Route path="upload" element={<UploadClipPage />} />
                 <Route path="course-builder" element={<CourseBuilderPage />} />
