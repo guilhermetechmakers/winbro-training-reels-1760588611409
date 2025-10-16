@@ -1,13 +1,15 @@
 import { useState, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, Camera, FileVideo, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, Camera, FileVideo, X, CheckCircle, AlertCircle, Pause, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { UploadFile } from '@/types/video';
+import { useResumableUpload } from '@/hooks/use-video-processing';
+import type { UploadFile, VideoMetadata } from '@/types/video';
 
 interface UploadWidgetProps {
   onFileSelect: (file: File) => void;
   onFileRemove: (fileId: string) => void;
+  onUploadComplete: (videoId: string) => void;
   files: UploadFile[];
   isUploading: boolean;
   className?: string;
@@ -16,12 +18,23 @@ interface UploadWidgetProps {
 export default function UploadWidget({
   onFileSelect,
   onFileRemove,
+  onUploadComplete,
   files,
   isUploading,
   className
 }: UploadWidgetProps) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [uploadSessions, setUploadSessions] = useState<Map<string, string>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { upload, pause, resume, cancel } = useResumableUpload({
+    onComplete: (videoId) => {
+      onUploadComplete(videoId);
+    },
+    onError: (error) => {
+      console.error('Upload error:', error);
+    },
+  });
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -33,7 +46,7 @@ export default function UploadWidget({
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     
@@ -42,15 +55,51 @@ export default function UploadWidget({
     
     if (videoFile) {
       onFileSelect(videoFile);
+      
+      // Start resumable upload
+      try {
+        const metadata: VideoMetadata = {
+          title: videoFile.name.replace(/\.[^/.]+$/, ''),
+          machineModel: '',
+          process: '',
+          tooling: [],
+          step: '',
+          tags: [],
+          isCustomerSpecific: false,
+        };
+        
+        const processingJobId = await upload(videoFile, metadata);
+        console.log('Upload started with job ID:', processingJobId);
+      } catch (error) {
+        console.error('Failed to start upload:', error);
+      }
     }
-  }, [onFileSelect]);
+  }, [onFileSelect, upload]);
 
-  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile && selectedFile.type.startsWith('video/')) {
       onFileSelect(selectedFile);
+      
+      // Start resumable upload
+      try {
+        const metadata: VideoMetadata = {
+          title: selectedFile.name.replace(/\.[^/.]+$/, ''),
+          machineModel: '',
+          process: '',
+          tooling: [],
+          step: '',
+          tags: [],
+          isCustomerSpecific: false,
+        };
+        
+        const processingJobId = await upload(selectedFile, metadata);
+        console.log('Upload started with job ID:', processingJobId);
+      } catch (error) {
+        console.error('Failed to start upload:', error);
+      }
     }
-  }, [onFileSelect]);
+  }, [onFileSelect, upload]);
 
   const handleCameraClick = useCallback(() => {
     // TODO: Implement camera access for direct recording
@@ -78,6 +127,38 @@ export default function UploadWidget({
         return null;
     }
   };
+
+  const handlePauseUpload = useCallback((fileId: string) => {
+    const uploadId = uploadSessions.get(fileId);
+    if (uploadId) {
+      pause(uploadId);
+    }
+  }, [uploadSessions, pause]);
+
+  const handleResumeUpload = useCallback(async (fileId: string) => {
+    const uploadId = uploadSessions.get(fileId);
+    const file = files.find(f => f.id === fileId)?.file;
+    if (uploadId && file) {
+      try {
+        await resume(uploadId, file);
+      } catch (error) {
+        console.error('Failed to resume upload:', error);
+      }
+    }
+  }, [uploadSessions, files, resume]);
+
+  const handleCancelUpload = useCallback((fileId: string) => {
+    const uploadId = uploadSessions.get(fileId);
+    if (uploadId) {
+      cancel(uploadId);
+      setUploadSessions(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(fileId);
+        return newMap;
+      });
+    }
+    onFileRemove(fileId);
+  }, [uploadSessions, cancel, onFileRemove]);
 
   return (
     <div className={cn('space-y-4', className)}>
@@ -182,14 +263,38 @@ export default function UploadWidget({
                     </div>
                   )}
                   
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onFileRemove(file.id)}
-                    disabled={file.status === 'uploading'}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    {file.status === 'uploading' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handlePauseUpload(file.id)}
+                        title="Pause upload"
+                      >
+                        <Pause className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    {file.status === 'error' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleResumeUpload(file.id)}
+                        title="Retry upload"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    )}
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCancelUpload(file.id)}
+                      title="Cancel upload"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Card>

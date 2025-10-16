@@ -2,126 +2,141 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { 
   Search, 
   Filter, 
   Grid, 
   List, 
-  Play, 
   Download, 
-  MoreVertical,
-  Eye,
-  Star,
-  Tag,
-  Calendar,
-  User,
-  Settings
+  Settings,
+  Tag
 } from 'lucide-react';
+import VideoCard from '@/components/video/VideoCard';
+import type { VideoClip } from '@/types/video';
 
 // Mock data - in a real app, this would come from API
-const mockVideos = [
+const mockVideos: VideoClip[] = [
   {
     id: '1',
     title: 'CNC Mill Setup - Part 1',
     description: 'Complete guide to setting up the CNC mill for precision machining operations',
-    duration: '2:30',
-    views: 45,
+    duration: 150, // 2:30 in seconds
+    view_count: 45,
+    like_count: 12,
+    download_count: 3,
     status: 'published',
-    thumbnail: '/api/placeholder/300/200',
+    thumbnail_url: '/api/placeholder/300/200',
+    video_url: '/api/videos/1/stream',
     tags: ['CNC', 'Setup', 'Machining'],
-    machineModel: 'Haas VF-2',
+    machine_model: 'Haas VF-2',
     process: 'Setup',
-    tooling: ['End Mill', 'Vise'],
-    createdAt: '2024-01-15',
-    author: 'John Doe',
-    rating: 4.8,
-    isCustomerSpecific: false,
+    tooling: 'End Mill, Vise',
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-15T10:00:00Z',
+    owner_id: 'user-1',
+    privacy_level: 'public',
   },
   {
     id: '2',
     title: 'Safety Procedures Overview',
     description: 'Essential safety protocols for machine operation and maintenance',
-    duration: '1:45',
-    views: 23,
+    duration: 105, // 1:45 in seconds
+    view_count: 23,
+    like_count: 8,
+    download_count: 1,
     status: 'published',
-    thumbnail: '/api/placeholder/300/200',
+    thumbnail_url: '/api/placeholder/300/200',
+    video_url: '/api/videos/2/stream',
     tags: ['Safety', 'Protocols', 'Maintenance'],
-    machineModel: 'General',
+    machine_model: 'General',
     process: 'Safety',
-    tooling: [],
-    createdAt: '2024-01-14',
-    author: 'Sarah Miller',
-    rating: 4.9,
-    isCustomerSpecific: false,
+    tooling: '',
+    created_at: '2024-01-14T10:00:00Z',
+    updated_at: '2024-01-14T10:00:00Z',
+    owner_id: 'user-2',
+    privacy_level: 'public',
   },
   {
     id: '3',
     title: 'Tool Change Process',
     description: 'Step-by-step guide for changing tools on the CNC machine',
-    duration: '3:15',
-    views: 0,
+    duration: 195, // 3:15 in seconds
+    view_count: 0,
+    like_count: 0,
+    download_count: 0,
     status: 'processing',
-    thumbnail: '/api/placeholder/300/200',
+    thumbnail_url: '/api/placeholder/300/200',
+    video_url: '/api/videos/3/stream',
     tags: ['Tool Change', 'CNC', 'Maintenance'],
-    machineModel: 'Haas VF-2',
+    machine_model: 'Haas VF-2',
     process: 'Maintenance',
-    tooling: ['Tool Holder', 'Wrench'],
-    createdAt: '2024-01-13',
-    author: 'Mike Rodriguez',
-    rating: 0,
-    isCustomerSpecific: true,
+    tooling: 'Tool Holder, Wrench',
+    created_at: '2024-01-13T10:00:00Z',
+    updated_at: '2024-01-13T10:00:00Z',
+    owner_id: 'user-3',
+    privacy_level: 'organization',
+    customer_id: 'customer-1',
   },
   {
     id: '4',
     title: 'Quality Control Check',
     description: 'How to perform quality control checks on machined parts',
-    duration: '2:00',
-    views: 67,
+    duration: 120, // 2:00 in seconds
+    view_count: 67,
+    like_count: 15,
+    download_count: 5,
     status: 'published',
-    thumbnail: '/api/placeholder/300/200',
+    thumbnail_url: '/api/placeholder/300/200',
+    video_url: '/api/videos/4/stream',
     tags: ['Quality', 'Inspection', 'Measurement'],
-    machineModel: 'General',
+    machine_model: 'General',
     process: 'Quality Control',
-    tooling: ['Calipers', 'Micrometer'],
-    createdAt: '2024-01-12',
-    author: 'Jane Smith',
-    rating: 4.7,
-    isCustomerSpecific: false,
+    tooling: 'Calipers, Micrometer',
+    created_at: '2024-01-12T10:00:00Z',
+    updated_at: '2024-01-12T10:00:00Z',
+    owner_id: 'user-4',
+    privacy_level: 'public',
   },
   {
     id: '5',
     title: 'Emergency Stop Procedures',
     description: 'Critical emergency procedures for machine operation',
-    duration: '1:30',
-    views: 89,
+    duration: 90, // 1:30 in seconds
+    view_count: 89,
+    like_count: 22,
+    download_count: 8,
     status: 'published',
-    thumbnail: '/api/placeholder/300/200',
+    thumbnail_url: '/api/placeholder/300/200',
+    video_url: '/api/videos/5/stream',
     tags: ['Emergency', 'Safety', 'Stop'],
-    machineModel: 'General',
+    machine_model: 'General',
     process: 'Safety',
-    tooling: [],
-    createdAt: '2024-01-11',
-    author: 'John Doe',
-    rating: 4.9,
-    isCustomerSpecific: false,
+    tooling: '',
+    created_at: '2024-01-11T10:00:00Z',
+    updated_at: '2024-01-11T10:00:00Z',
+    owner_id: 'user-1',
+    privacy_level: 'public',
   },
   {
     id: '6',
     title: 'Advanced Machining Techniques',
     description: 'Advanced techniques for complex machining operations',
-    duration: '4:20',
-    views: 34,
+    duration: 260, // 4:20 in seconds
+    view_count: 34,
+    like_count: 9,
+    download_count: 2,
     status: 'published',
-    thumbnail: '/api/placeholder/300/200',
+    thumbnail_url: '/api/placeholder/300/200',
+    video_url: '/api/videos/6/stream',
     tags: ['Advanced', 'Techniques', 'Machining'],
-    machineModel: 'Haas VF-2',
+    machine_model: 'Haas VF-2',
     process: 'Machining',
-    tooling: ['Special End Mill', 'Coolant'],
-    createdAt: '2024-01-10',
-    author: 'Mike Rodriguez',
-    rating: 4.6,
-    isCustomerSpecific: true,
+    tooling: 'Special End Mill, Coolant',
+    created_at: '2024-01-10T10:00:00Z',
+    updated_at: '2024-01-10T10:00:00Z',
+    owner_id: 'user-3',
+    privacy_level: 'organization',
+    customer_id: 'customer-1',
   },
 ];
 
@@ -148,7 +163,7 @@ export default function ContentLibraryPage() {
   const filteredVideos = useMemo(() => {
     let filtered = mockVideos.filter(video => {
       const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           video.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (video.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                            video.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
       
       const matchesTags = selectedTags.length === 0 || 
@@ -161,13 +176,13 @@ export default function ContentLibraryPage() {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'views':
-          return b.views - a.views;
+          return b.view_count - a.view_count;
         case 'rating':
-          return b.rating - a.rating;
+          return b.like_count - a.like_count;
         case 'title':
           return a.title.localeCompare(b.title);
         default:
@@ -186,18 +201,6 @@ export default function ContentLibraryPage() {
     );
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'bg-green-100 text-green-800';
-      case 'processing':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -326,136 +329,45 @@ export default function ContentLibraryPage() {
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredVideos.map((video) => (
-              <Card key={video.id} className="group card-hover overflow-hidden">
-                <div className="relative aspect-video bg-muted">
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                    <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white">
-                      <Play className="h-4 w-4 mr-2" />
-                      Play
-                    </Button>
-                  </div>
-                  <div className="absolute top-2 right-2">
-                    <Badge className={getStatusColor(video.status)}>
-                      {video.status}
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    {video.duration}
-                  </div>
-                </div>
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors">
-                      {video.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {video.description}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {video.views}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Star className="h-3 w-3" />
-                        {video.rating}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {video.author}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {video.tags.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {video.tags.length > 3 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{video.tags.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <VideoCard
+                key={video.id}
+                video={video}
+                viewMode="grid"
+                onPlay={(videoId) => {
+                  // Navigate to video player
+                  console.log('Play video:', videoId);
+                }}
+                onRetry={(videoId) => {
+                  // Retry processing
+                  console.log('Retry processing for video:', videoId);
+                }}
+                onCancel={(videoId) => {
+                  // Cancel processing
+                  console.log('Cancel processing for video:', videoId);
+                }}
+              />
             ))}
           </div>
         ) : (
           <div className="space-y-4">
             {filteredVideos.map((video) => (
-              <Card key={video.id} className="group card-hover">
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="relative w-32 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                        <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white">
-                          <Play className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
-                        {video.duration}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold group-hover:text-primary transition-colors line-clamp-1">
-                            {video.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                            {video.description}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 ml-4">
-                          <Badge className={getStatusColor(video.status)}>
-                            {video.status}
-                          </Badge>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-6 text-xs text-muted-foreground mt-2">
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {video.views} views
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Star className="h-3 w-3" />
-                          {video.rating}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {video.author}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(video.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {video.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <VideoCard
+                key={video.id}
+                video={video}
+                viewMode="list"
+                onPlay={(videoId) => {
+                  // Navigate to video player
+                  console.log('Play video:', videoId);
+                }}
+                onRetry={(videoId) => {
+                  // Retry processing
+                  console.log('Retry processing for video:', videoId);
+                }}
+                onCancel={(videoId) => {
+                  // Cancel processing
+                  console.log('Cancel processing for video:', videoId);
+                }}
+              />
             ))}
           </div>
         )}

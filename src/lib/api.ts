@@ -100,6 +100,31 @@ export const processingApi = {
   cancel: (jobId: string) => api.delete(`/processing/${jobId}`),
 };
 
+// Video Processing API
+export const videoProcessingApi = {
+  initiateUpload: (request: import('@/types/video').VideoUploadRequest) => 
+    api.post<import('@/types/video').ResumableUploadSession>('/videos/upload/initiate', request),
+  uploadChunk: (request: import('@/types/video').UploadChunkRequest) => 
+    api.post<import('@/types/video').UploadChunkResponse>(`/videos/upload/${request.uploadId}/chunk`, request),
+  completeUpload: (uploadId: string, videoId: string) => 
+    api.post<{ processingJobId: string }>(`/videos/upload/${uploadId}/complete`, { videoId }),
+  getProcessingStatus: (videoId: string) => 
+    api.get<import('@/types/video').VideoProcessingStatus>(`/videos/${videoId}/status`),
+  retryProcessing: (videoId: string) => 
+    api.post<{ processingJobId: string }>(`/videos/${videoId}/retry`, {}),
+  getPreviewUrl: (videoId: string) => 
+    api.get<{ previewUrl: string }>(`/videos/${videoId}/preview`),
+  getVideoFormats: (videoId: string) => 
+    api.get<import('@/types/video').VideoFormat[]>(`/videos/${videoId}/formats`),
+  deleteVideo: (videoId: string) => api.delete(`/videos/${videoId}`),
+  getStorageConfig: () => 
+    api.get<import('@/types/video').VideoStorageConfig>('/videos/storage/config'),
+  getProcessingConfig: () => 
+    api.get<import('@/types/video').VideoProcessingConfig>('/videos/processing/config'),
+  updateProcessingConfig: (config: Partial<import('@/types/video').VideoProcessingConfig>) => 
+    api.put<import('@/types/video').VideoProcessingConfig>('/videos/processing/config', config),
+};
+
 // Course API
 export const courseApi = {
   getAll: () => api.get<import('@/types/course').Course[]>('/courses'),

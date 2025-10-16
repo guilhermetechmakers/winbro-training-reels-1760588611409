@@ -12,10 +12,10 @@ import MetadataForm from '@/components/upload/MetadataForm';
 import TranscriptEditor from '@/components/upload/TranscriptEditor';
 import ThumbnailSelector from '@/components/upload/ThumbnailSelector';
 import UploadProgress from '@/components/upload/UploadProgress';
+import ProcessingStatus from '@/components/upload/ProcessingStatus';
 
 // Import services
 import { UploadService } from '@/services/uploadService';
-import { VideoProcessingService } from '@/services/videoProcessingService';
 
 // Import types
 import type { UploadFile, VideoMetadata, AIProcessingResult } from '@/types/video';
@@ -40,6 +40,7 @@ export default function UploadClipPage() {
   const [aiResult, setAiResult] = useState<AIProcessingResult | null>(null);
   const [selectedThumbnail, setSelectedThumbnail] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [processingVideoId, setProcessingVideoId] = useState<string | null>(null);
 
   // Handle file selection
   const handleFileSelect = useCallback(async (file: File) => {
@@ -53,75 +54,13 @@ export default function UploadClipPage() {
 
     setFiles(prev => [...prev, newFile]);
     setCurrentStep('metadata');
+  }, []);
 
-    try {
-      // Initiate upload
-      const uploadResponse = await UploadService.initiateUpload({
-        fileName: file.name,
-        fileSize: file.size,
-        contentType: file.type,
-      });
-
-      // Update file with upload URL
-      setFiles(prev => prev.map(f => 
-        f.id === fileId 
-          ? { ...f, uploadUrl: uploadResponse.uploadUrl }
-          : f
-      ));
-
-      // Upload file with progress tracking
-      await UploadService.uploadFile(
-        file,
-        uploadResponse.uploadUrl,
-        (progress) => {
-          setFiles(prev => prev.map(f => 
-            f.id === fileId 
-              ? { ...f, progress }
-              : f
-          ));
-        }
-      );
-
-      // Complete upload
-      const completeResponse = await UploadService.completeUpload({
-        uploadId: uploadResponse.uploadId,
-        metadata,
-      });
-
-      // Update file status
-      setFiles(prev => prev.map(f => 
-        f.id === fileId 
-          ? { 
-              ...f, 
-              status: 'processing', 
-              processingJobId: completeResponse.processingJobId 
-            }
-          : f
-      ));
-
-      // Start polling for processing results
-      setCurrentStep('processing');
-      await VideoProcessingService.pollProcessingStatus(
-        completeResponse.processingJobId,
-        (status) => {
-          if (status.result) {
-            setAiResult(status.result);
-            setSelectedThumbnail(status.result.thumbnails[0] || '');
-            setCurrentStep('review');
-          }
-        }
-      );
-
-    } catch (error) {
-      console.error('Upload failed:', error);
-      setFiles(prev => prev.map(f => 
-        f.id === fileId 
-          ? { ...f, status: 'error', error: error instanceof Error ? error.message : 'Upload failed' }
-          : f
-      ));
-      toast.error('Upload failed. Please try again.');
-    }
-  }, [metadata]);
+  // Handle upload completion
+  const handleUploadComplete = useCallback((videoId: string) => {
+    setProcessingVideoId(videoId);
+    setCurrentStep('processing');
+  }, []);
 
   // Handle file removal
   const handleFileRemove = useCallback((fileId: string) => {
@@ -280,6 +219,7 @@ export default function UploadClipPage() {
               <UploadWidget
                 onFileSelect={handleFileSelect}
                 onFileRemove={handleFileRemove}
+                onUploadComplete={handleUploadComplete}
                 files={files}
                 isUploading={files.some(f => f.status === 'uploading')}
               />
@@ -294,16 +234,37 @@ export default function UploadClipPage() {
               />
             )}
 
-            {currentStep === 'processing' && (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <div className="h-16 w-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Processing Your Video</h3>
-                  <p className="text-muted-foreground text-center">
-                    AI is analyzing your video content and generating a transcript. This may take a few minutes.
-                  </p>
-                </CardContent>
-              </Card>
+            {currentStep === 'processing' && processingVideoId && (
+              <ProcessingStatus
+                videoId={processingVideoId}
+                onComplete={(_videoId) => {
+                  // In a real implementation, fetch the processing result
+                  const mockResult: AIProcessingResult = {
+                    transcript: {
+                      text: 'Mock transcript for testing',
+                      segments: [
+                        { start: 0, end: 30, text: 'This is a mock transcript segment' }
+                      ]
+                    },
+                    suggestedTags: [
+                      { tag: 'training', confidence: 0.9 },
+                      { tag: 'manufacturing', confidence: 0.8 }
+                    ],
+                    thumbnails: [
+                      '/api/thumbnails/1.jpg',
+                      '/api/thumbnails/2.jpg',
+                      '/api/thumbnails/3.jpg'
+                    ]
+                  };
+                  setAiResult(mockResult);
+                  setSelectedThumbnail(mockResult.thumbnails[0] || '');
+                  setCurrentStep('review');
+                }}
+                onError={(error) => {
+                  toast.error(`Processing failed: ${error}`);
+                  setCurrentStep('upload');
+                }}
+              />
             )}
 
             {currentStep === 'review' && aiResult && (
@@ -371,6 +332,7 @@ export default function UploadClipPage() {
                 onPause={handlePause}
                 onRetry={handleRetry}
                 onCancel={handleCancel}
+                processingVideoId={processingVideoId || undefined}
               />
             )}
           </div>
