@@ -11,6 +11,8 @@ import {
   User, 
   BarChart3,
   CreditCard,
+  Github,
+  AlertTriangle,
   Menu,
   X,
   LogOut
@@ -23,6 +25,8 @@ const navigation = [
   { name: 'Upload Video', href: '/dashboard/upload', icon: Upload },
   { name: 'Course Builder', href: '/dashboard/course-builder', icon: BookOpen },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { name: 'GitHub Analysis', href: '/dashboard/github-analysis', icon: Github },
+  { name: 'Error Dashboard', href: '/dashboard/error-dashboard', icon: AlertTriangle },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   { name: 'Profile', href: '/dashboard/profile', icon: User },
   { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },

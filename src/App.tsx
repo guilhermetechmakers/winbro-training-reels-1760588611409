@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import ErrorBoundary from "@/components/error/ErrorBoundary";
 
 // Pages
 import LandingPage from "@/pages/LandingPage";
@@ -22,6 +23,8 @@ import SettingsPage from "@/pages/SettingsPage";
 import BillingPage from "@/pages/BillingPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import UserProfilePage from "@/pages/UserProfilePage";
+import GitHubAnalysisPage from "@/pages/GitHubAnalysisPage";
+import ErrorDashboardPage from "@/pages/ErrorDashboardPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 // React Query client with optimal defaults
@@ -38,41 +41,45 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="ui-theme">
-        <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/password-reset" element={<PasswordResetPage />} />
-            <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
-            
-            {/* Dashboard routes */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="library" element={<ContentLibraryPage />} />
-              <Route path="video/:id" element={<VideoPlayerPage />} />
-              <Route path="upload" element={<UploadClipPage />} />
-              <Route path="course-builder" element={<CourseBuilderPage />} />
-              <Route path="course/:id" element={<CoursePlayerPage />} />
-              <Route path="profile" element={<UserProfilePage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="billing" element={<BillingPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="light" storageKey="ui-theme">
+          <BrowserRouter>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/password-reset" element={<PasswordResetPage />} />
+              <Route path="/verify-email/:token" element={<EmailVerificationPage />} />
               
-              {/* Admin routes */}
-              <Route path="admin" element={<AdminDashboardPage />} />
-              <Route path="admin/users" element={<UserManagementPage />} />
-            </Route>
-            
-            {/* 404 */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </BrowserRouter>
-        <Toaster />
-      </ThemeProvider>
-    </QueryClientProvider>
+              {/* Dashboard routes */}
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="library" element={<ContentLibraryPage />} />
+                <Route path="video/:id" element={<VideoPlayerPage />} />
+                <Route path="upload" element={<UploadClipPage />} />
+                <Route path="course-builder" element={<CourseBuilderPage />} />
+                <Route path="course/:id" element={<CoursePlayerPage />} />
+                <Route path="profile" element={<UserProfilePage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="billing" element={<BillingPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="github-analysis" element={<GitHubAnalysisPage />} />
+                <Route path="error-dashboard" element={<ErrorDashboardPage />} />
+                
+                {/* Admin routes */}
+                <Route path="admin" element={<AdminDashboardPage />} />
+                <Route path="admin/users" element={<UserManagementPage />} />
+              </Route>
+              
+              {/* 404 */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </BrowserRouter>
+          <Toaster />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
