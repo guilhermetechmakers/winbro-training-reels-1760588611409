@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { useSignIn } from "@/hooks/useAuth";
-import { Play, Eye, EyeOff } from "lucide-react";
+import { Play, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -42,22 +42,30 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"></div>
+      <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full animate-pulse"></div>
+      <div className="absolute bottom-20 right-10 w-24 h-24 bg-secondary/20 rounded-full animate-bounce"></div>
+      <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-accent/30 rounded-full animate-pulse"></div>
+      
+      <div className="w-full max-w-md relative z-10">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Play className="w-6 h-6 text-primary-foreground" />
+        <div className="text-center mb-8 animate-fade-in-down">
+          <Link to="/" className="inline-flex items-center space-x-2 group">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+              <Play className="w-7 h-7 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold">Winbro Training Reels</span>
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Winbro Training Reels
+            </span>
           </Link>
         </div>
 
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Welcome back</CardTitle>
-            <CardDescription>
+        <Card className="shadow-2xl border-0 bg-card/80 backdrop-blur-sm animate-fade-in-up">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-3xl font-bold">Welcome back</CardTitle>
+            <CardDescription className="text-base">
               Sign in to your account to continue learning
             </CardDescription>
           </CardHeader>
@@ -126,10 +134,20 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full btn-primary group"
                 disabled={signIn.isPending}
               >
-                {signIn.isPending ? "Signing in..." : "Sign In"}
+                {signIn.isPending ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </Button>
             </form>
 
