@@ -81,6 +81,25 @@ export const videoApi = {
   },
 };
 
+// Upload API
+export const uploadApi = {
+  initiate: (data: import('@/types/video').UploadInitiateRequest) => 
+    api.post<import('@/types/video').UploadInitiateResponse>('/upload/initiate', data),
+  complete: (data: import('@/types/video').UploadCompleteRequest) => 
+    api.post<import('@/types/video').UploadCompleteResponse>('/upload/complete', data),
+  cancel: (uploadId: string) => api.delete(`/upload/${uploadId}`),
+  resume: (uploadId: string, resumeUrl: string) => 
+    api.post(`/upload/${uploadId}/resume`, { resumeUrl }),
+};
+
+// Processing API
+export const processingApi = {
+  getStatus: (jobId: string) => 
+    api.get<import('@/types/video').ProcessingStatusResponse>(`/processing/status/${jobId}`),
+  retry: (jobId: string) => api.post(`/processing/${jobId}/retry`, {}),
+  cancel: (jobId: string) => api.delete(`/processing/${jobId}`),
+};
+
 // Course API
 export const courseApi = {
   getAll: () => api.get<import('@/types/course').Course[]>('/courses'),
